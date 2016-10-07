@@ -22,7 +22,8 @@ module Neo4Apis
         end
       else
         p "running #{model_class}"
-        return if model_class.primary_key.nil? || (uuid model_class.name == false)
+        return if model_class.primary_key.nil?
+        begin
         uuid model_class.name.to_sym, model_class.primary_key
 
         importer model_class.name.to_sym do |object|
@@ -43,6 +44,9 @@ module Neo4Apis
               end
             end
           end
+        end
+        rescue => e
+          p "Error: #{e}"
         end
       end
     end
