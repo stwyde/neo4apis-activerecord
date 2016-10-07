@@ -21,7 +21,7 @@ module Neo4Apis
           add_model_relationship relationship_name, from_node, to_node
         end
       else
-        return if model_class.primary_key.nil?
+        return if model_class.primary_key.nil? || !model_class.name
         uuid model_class.name.to_sym, model_class.primary_key
 
         importer model_class.name.to_sym do |object|
