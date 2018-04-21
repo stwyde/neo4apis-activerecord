@@ -20,5 +20,5 @@ A ruby gem using neo4apis to make importing SQL data to neo4j easy
 
   s.add_dependency('neo4apis', '>= 0.8.1')
   s.add_dependency('activerecord', '~> 5.1.0')
-  s.add_dependency('composite_primary_keys', '~> 9.0.4')
+ # s.add_dependency('composite_primary_keys', '~> 9.0.4')
 end
