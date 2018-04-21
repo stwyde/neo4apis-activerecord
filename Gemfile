@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gemspec
+  gem 'composite_primary_keys', git: 'https://github.com/composite-primary-keys/composite_primary_keys'
 
 group :development do
   gem 'pry'
