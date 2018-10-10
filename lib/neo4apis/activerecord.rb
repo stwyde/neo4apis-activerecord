@@ -65,7 +65,11 @@ module Neo4Apis
         object_data.send("#{column_name}=", attribute_for_coder(object, column_name))
       end
 
-      add_node model_class.name.to_sym, object_data, model_class.column_names
+      begin
+        add_node model_class.name.to_sym, object_data, model_class.column_names
+      rescue
+        raise object_data.inspect + model_class.column_names.inspect 
+      end 
     end
 
     def attribute_for_coder(object, column_name)
