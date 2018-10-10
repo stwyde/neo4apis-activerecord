@@ -38,20 +38,13 @@ module Neo4Apis
         import_models_or_tables(*models_or_table_names)
       end
 
-      desc 'all_tables', 'Import all SQL tables'
-      def all_tables
-        setup
-
-        import_models_or_tables(*::ActiveRecord::Base.connection.tables)
-      end
-
       desc 'all_models', 'Import SQL tables using defined models'
       def all_models
         setup
 
         Rails.application.eager_load!
 
-        import_models_or_tables(*::ActiveRecord::Base.descendants)
+        import_models_or_tables(*ApplicationRecord.descendants)
       end
 
       private
@@ -63,7 +56,7 @@ module Neo4Apis
       end
 
       def import_models_or_tables(*models_or_table_names)
-        model_classes = models_or_table_names.map(&method(:get_model))
+        model_classes = models_or_table_names
 
         puts 'Importing tables: ' + model_classes.map(&:table_name).join(', ')
 
@@ -108,7 +101,8 @@ module Neo4Apis
         @neo4apis_client ||= NEO4APIS_CLIENT_CLASS.new(specified_neo4j_session,
                                                        import_belongs_to: import_association?(:belongs_to),
                                                        import_has_one: import_association?(:has_one),
-                                                       import_has_many: import_association?(:has_many))
+                                                       import_has_many: import_association?(:has_many),
+                                                       import_has_and_belongs_to_many: import_association?(:has_and_belongs_to_many))
       end
 
       def import_association?(type)

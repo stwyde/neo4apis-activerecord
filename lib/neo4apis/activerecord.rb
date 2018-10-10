@@ -74,11 +74,7 @@ module Neo4Apis
         column.cast_type.type_cast_from_user(object.attributes[column_name])
       else
         value = object.attributes[column_name]
-        if coder = object.class.serialized_attributes[column_name]
-          coder.dump(value)
-        else
-          value
-        end
+        value
       end
     end
   end
