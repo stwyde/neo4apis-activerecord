@@ -66,6 +66,7 @@ module Neo4Apis
 
         neo4apis_client.batch do
           model_classes.each do |model_class|
+            puts "now directly importing: " + model_class.name 
             query = model_class.all
 
             # Eager load association for faster import
