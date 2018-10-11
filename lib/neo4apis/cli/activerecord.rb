@@ -72,7 +72,7 @@ module Neo4Apis
             include_list = include_list_for_model(model_class)
             query = query.includes(*include_list) if include_list.present?
 
-            query.each do |object|
+            query.find_each do |object|
               neo4apis_client.import model_class.name.to_sym, object
             end
           end
