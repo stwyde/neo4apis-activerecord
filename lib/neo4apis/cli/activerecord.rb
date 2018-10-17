@@ -27,25 +27,36 @@ module Neo4Apis
       desc 'tables MODELS_OR_TABLE_NAMES', 'Import specified SQL tables'
       def tables(*models_or_table_names)
         setup
-
-        import_models_or_tables(*models_or_table_names)
+        import_models_or_tables(*models_or_table_names.map(&method(:get_model))
       end
 
       desc 'models MODELS_OR_TABLE_NAMES', 'Import specified ActiveRecord models'
       def models(*models_or_table_names)
         setup
-
-        import_models_or_tables(*models_or_table_names)
+        import_models_or_tables(*models_or_table_names.map(&method(:get_model))
       end
 
       desc 'all_models', 'Import SQL tables using defined models'
       def all_models
         setup
-
         Rails.application.eager_load!
-
-        import_models_or_tables(*ApplicationRecord.descendants)
+        import_models_or_tables(*ApplicationRecord.descendants)#.collect{|model| model.name})
       end
+
+      desc 'all_models_except EXCEPTIONS', 'Import all defined models except specified'
+      def all_models_except(*exceptions)
+        setup
+        Rails.application.eager_load!
+        puts exceptions 
+        all_models = *ApplicationRecord.descendants
+        models_to_process = []
+        for model in all_models
+          unless exceptions.include? model.name
+            models_to_process << model 
+          end 
+        end
+        import_models_or_tables(models_to_process, exceptions) 
+      end 
 
       private
 
@@ -55,8 +66,8 @@ module Neo4Apis
         puts(*messages)
       end
 
-      def import_models_or_tables(*models_or_table_names)
-        model_classes = models_or_table_names
+      def import_models_or_tables(*models_or_table_names, *exceptions=[])
+        model_classes = models_or_table_names#.map(&method(:get_model))
 
         puts 'Importing tables: ' + model_classes.map(&:table_name).join(', ')
 
@@ -71,7 +82,12 @@ module Neo4Apis
 
             # Eager load association for faster import
             include_list = include_list_for_model(model_class)
-            query = query.includes(*include_list) if include_list.present?
+            if include_list.present?
+              filtered_include_list = []
+              for association in include_list
+                filtered_include_list << association unless exceptions.include? association.to_s.singularize.camelize
+              end 
+              query = query.includes(*filtered_include_list)
 
             query.find_each do |object|
               neo4apis_client.import model_class.name.to_sym, object
@@ -82,7 +98,7 @@ module Neo4Apis
 
       def include_list_for_model(model_class)
         model_class.reflect_on_all_associations.map do |association_reflection|
-          association_reflection.name.to_sym if import_association?(association_reflection.macro)
+          association_reflection.name.to_sym if (import_association?(association_reflection.macro))
         end.compact.tap do |include_list|
           debug_log 'include_list', include_list.inspect
         end
