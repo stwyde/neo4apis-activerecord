@@ -88,7 +88,8 @@ module Neo4Apis
                 filtered_include_list << association unless exceptions.include? association.to_s.singularize.camelize
               end 
               query = query.includes(*filtered_include_list)
-
+            end 
+            
             query.find_each do |object|
               neo4apis_client.import model_class.name.to_sym, object
             end
