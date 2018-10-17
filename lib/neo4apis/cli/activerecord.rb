@@ -27,13 +27,13 @@ module Neo4Apis
       desc 'tables MODELS_OR_TABLE_NAMES', 'Import specified SQL tables'
       def tables(*models_or_table_names)
         setup
-        import_models_or_tables(*models_or_table_names.map(&method(:get_model))
+        import_models_or_tables(*models_or_table_names.map(&method(:get_model))) #constantize? 
       end
 
       desc 'models MODELS_OR_TABLE_NAMES', 'Import specified ActiveRecord models'
       def models(*models_or_table_names)
         setup
-        import_models_or_tables(*models_or_table_names.map(&method(:get_model))
+        import_models_or_tables(*models_or_table_names.map(&method(:get_model)) )#constantize?
       end
 
       desc 'all_models', 'Import SQL tables using defined models'
