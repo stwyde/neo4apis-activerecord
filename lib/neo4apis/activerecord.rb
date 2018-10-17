@@ -27,22 +27,24 @@ module Neo4Apis
         uuid model_class.name.to_sym, model_class.primary_key
 
         importer model_class.name.to_sym do |object|
-          node = add_model_node model_class, object
+          node = add_model_node model_class, object unless exceptions.include? model_class.name.to_s.singularize.camelize
 
           model_class.reflect_on_all_associations.each do |association_reflection|
-            case association_reflection.macro
-            when :belongs_to, :has_one
-              if options[:"import_#{association_reflection.macro}"]
-                referenced_object = object.send(association_reflection.name)
-                add_model_relationship association_reflection.name, node, referenced_object if (referenced_object and not (exceptions.include? association_reflection.name.to_s.singularize.camelize))
-              end
-            when :has_many, :has_and_belongs_to_many
-              if options[:"import_#{association_reflection.macro}"]
-                object.send(association_reflection.name).each do |referenced_object|
-                  add_model_relationship association_reflection.name, node, referenced_object if (referenced_object and not (exceptions.include? association_reflection.name.to_s.singularize.camelize))
+            unless exceptions.include? association_reflection.name.to_s.singularize.camelize
+              case association_reflection.macro
+              when :belongs_to, :has_one
+                if options[:"import_#{association_reflection.macro}"]
+                  referenced_object = object.send(association_reflection.name)
+                  add_model_relationship association_reflection.name, node, referenced_object if (referenced_object and not exceptions.include? model_class.name.to_s.singularize.camelize )
+                end
+              when :has_many, :has_and_belongs_to_many
+                if options[:"import_#{association_reflection.macro}"]
+                  object.send(association_reflection.name).each do |referenced_object|
+                    add_model_relationship association_reflection.name, node, referenced_object if (referenced_object and not exceptions.include? model_class.name.to_s.singularize.camelize )
+                  end
                 end
               end
-            end
+            end 
           end
         end
         rescue => e

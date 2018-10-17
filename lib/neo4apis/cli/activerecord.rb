@@ -72,7 +72,7 @@ module Neo4Apis
         puts 'Importing tables: ' + model_classes.map(&:table_name).join(', ')
 
         model_classes.each do |model_class|
-          NEO4APIS_CLIENT_CLASS.model_importer(model_class)
+          NEO4APIS_CLIENT_CLASS.model_importer(model_class, exceptions)
         end
 
         neo4apis_client.batch do
@@ -89,7 +89,7 @@ module Neo4Apis
               end 
               query = query.includes(*filtered_include_list)
             end 
-            
+
             query.find_each do |object|
               neo4apis_client.import model_class.name.to_sym, object
             end
