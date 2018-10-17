@@ -89,10 +89,14 @@ module Neo4Apis
               end 
               query = query.includes(*filtered_include_list)
             end 
-
-            query.find_each do |object|
-              neo4apis_client.import model_class.name.to_sym, object
-            end
+            
+            if query.primary_key.nil? 
+              puts "There's no primary key associated with this model. Skipping model to prevent errors"
+            else 
+              query.find_each do |object|
+                neo4apis_client.import model_class.name.to_sym, object
+              end
+            end 
           end
         end
       end
