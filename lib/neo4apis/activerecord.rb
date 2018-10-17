@@ -34,12 +34,12 @@ module Neo4Apis
             when :belongs_to, :has_one
               if options[:"import_#{association_reflection.macro}"]
                 referenced_object = object.send(association_reflection.name)
-                add_model_relationship association_reflection.name, node, referenced_object if (referenced_object and not (exceptions.include? association_reflection.name.singularize.camelize))
+                add_model_relationship association_reflection.name, node, referenced_object if (referenced_object and not (exceptions.include? association_reflection.name.to_s.singularize.camelize))
               end
             when :has_many, :has_and_belongs_to_many
               if options[:"import_#{association_reflection.macro}"]
                 object.send(association_reflection.name).each do |referenced_object|
-                  add_model_relationship association_reflection.name, node, referenced_object if (referenced_object and not (exceptions.include? association_reflection.name.singularize.camelize))
+                  add_model_relationship association_reflection.name, node, referenced_object if (referenced_object and not (exceptions.include? association_reflection.name.to_s.singularize.camelize))
                 end
               end
             end
