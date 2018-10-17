@@ -66,7 +66,7 @@ module Neo4Apis
         puts(*messages)
       end
 
-      def import_models_or_tables(*models_or_table_names, *exceptions=[])
+      def import_models_or_tables(models_or_table_names, exceptions=[])
         model_classes = models_or_table_names#.map(&method(:get_model))
 
         puts 'Importing tables: ' + model_classes.map(&:table_name).join(', ')
