@@ -80,7 +80,8 @@ module Neo4Apis
             puts "now directly importing: " + model_class.name 
             begin
               query = model_class.all  #if this fails, that means the table is unavailable. Lets us skip crashing later down the road
-            rescue 
+              first_entry = query.first 
+            rescue ActiveRecord::StatementInvalid
               puts "Error: Model " + model_class.name + " Does not have a table! Skipping model to prevent errors"
               next 
             end 
