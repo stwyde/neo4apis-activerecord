@@ -81,8 +81,8 @@ module Neo4Apis
             begin
               query = model_class.all  #if this fails, that means the table is unavailable. Lets us skip crashing later down the road
               first_entry = query.first 
-            rescue ActiveRecord::StatementInvalid
-              puts "Error: Model " + model_class.name + " Does not have a table! Skipping model to prevent errors"
+            rescue
+              puts "Error: Model " + model_class.name + " Does not have a table (or something else went wrong)! Skipping model to prevent errors"
               next 
             end 
 
