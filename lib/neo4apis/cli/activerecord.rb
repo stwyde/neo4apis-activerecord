@@ -67,7 +67,7 @@ module Neo4Apis
       end
 
       def import_models_or_tables(models_or_table_names, exceptions=[])
-        model_classes = models_or_table_names#.map(&method(:get_model))
+        model_classes = models_or_table_names.wrap #.map(&method(:get_model))
 
         puts 'Importing tables: ' + model_classes.map(&:table_name).join(', ')
 
@@ -78,7 +78,12 @@ module Neo4Apis
         neo4apis_client.batch do
           model_classes.each do |model_class|
             puts "now directly importing: " + model_class.name 
-            query = model_class.all
+            begin
+              query = model_class.all  #if this fails, that means the table is unavailable. Lets us skip crashing later down the road
+            rescue 
+              puts "Error: Model " + model_class.name + " Does not have a table! Skipping model to prevent errors"
+              next 
+            end 
 
             # Eager load association for faster import
             include_list = include_list_for_model(model_class)
@@ -92,6 +97,7 @@ module Neo4Apis
             
             if query.primary_key.nil? 
               puts "There's no primary key associated with this model. Skipping model to prevent errors"
+              next 
             else 
               query.find_each do |object|
                 neo4apis_client.import model_class.name.to_sym, object
