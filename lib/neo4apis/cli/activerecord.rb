@@ -67,7 +67,7 @@ module Neo4Apis
       end
 
       def import_models_or_tables(models_or_table_names, exceptions=[])
-        model_classes = models_or_table_names.wrap #.map(&method(:get_model))
+        model_classes = Array.wrap(models_or_table_names) #.map(&method(:get_model))
 
         puts 'Importing tables: ' + model_classes.map(&:table_name).join(', ')
 
