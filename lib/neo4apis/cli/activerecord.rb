@@ -27,13 +27,16 @@ module Neo4Apis
       desc 'tables MODELS_OR_TABLE_NAMES', 'Import specified SQL tables'
       def tables(*models_or_table_names)
         setup
-        import_models_or_tables(*models_or_table_names.map(&method(:get_model))) #constantize? 
+	      tables = Array.wrap(models_or_table_names.map(&method(:get_model)))
+        import_models_or_tables(tables) #constantize?
       end
 
       desc 'models MODELS_OR_TABLE_NAMES', 'Import specified ActiveRecord models'
       def models(*models_or_table_names)
         setup
-        import_models_or_tables(*models_or_table_names.map(&method(:get_model)) )#constantize?
+        Rails.application.eager_load!
+	      models = Array.wrap(models_or_table_names.map(&method(:get_model)))
+        import_models_or_tables(models) #constantize?
       end
 
       desc 'all_models', 'Import SQL tables using defined models'
@@ -47,22 +50,34 @@ module Neo4Apis
       def all_models_except(*exceptions)
         setup
         Rails.application.eager_load!
-        puts exceptions 
+        puts exceptions
         all_models = *ApplicationRecord.descendants
         models_to_process = []
         for model in all_models
           unless exceptions.include? model.name
-            models_to_process << model 
-          end 
+            models_to_process << model
+          end
         end
-        import_models_or_tables(models_to_process, exceptions) 
-      end 
+        import_models_or_tables(models_to_process, exceptions)
+      end
+
+      desc 'models_with_internal_associations MODELS_OR_TABLE_NAMES', 'Import specified ActiveRecord models and their associations if the association model is in the included set of models'
+      def models_with_internal_associations(*models_or_table_names)
+        setup
+	       models = Array.wrap(models_or_table_names.map(&method(:get_model)))
+         #now create exception set based on all the models NOT in "models"
+         exceptions = []
+         Rails.application.eager_load!
+         ApplicationRecord.descendants.each do |rails_model|
+           exceptions << rails_model.name unless models.include? rails_model
+         end
+        import_models_or_tables(models, exceptions) #constantize?
+      end
 
       private
 
       def debug_log(*messages)
         return unless options[:debug]
-
         puts(*messages)
       end
 
@@ -72,19 +87,21 @@ module Neo4Apis
         puts 'Importing tables: ' + model_classes.map(&:table_name).join(', ')
 
         model_classes.each do |model_class|
+        #Rails.application.eager_load!
+        #ApplicationRecord.descendants.each do |model_class|
           NEO4APIS_CLIENT_CLASS.model_importer(model_class, exceptions)
         end
 
         neo4apis_client.batch do
           model_classes.each do |model_class|
-            puts "now directly importing: " + model_class.name 
+            puts "now directly importing: " + model_class.name
             begin
               query = model_class.all  #if this fails, that means the table is unavailable. Lets us skip crashing later down the road
-              first_entry = query.first 
+              first_entry = query.first
             rescue
               puts "Error: Model " + model_class.name + " Does not have a table (or something else went wrong)! Skipping model to prevent errors"
-              next 
-            end 
+              next
+            end
 
             # Eager load association for faster import
             include_list = include_list_for_model(model_class)
@@ -92,18 +109,19 @@ module Neo4Apis
               filtered_include_list = []
               for association in include_list
                 filtered_include_list << association unless exceptions.include? association.to_s.singularize.camelize
-              end 
-              query = query.includes(*filtered_include_list)
-            end 
-            
-            if query.primary_key.nil? 
-              puts "There's no primary key associated with this model. Skipping model to prevent errors"
-              next 
-            else 
-              query.find_each do |object|
-                neo4apis_client.import model_class.name.to_sym, object
               end
-            end 
+              puts filtered_include_list #uncomment when testing to see if relationships are properly being included
+              query = query.includes(*filtered_include_list) unless filtered_include_list.blank?
+            end
+
+            if query.primary_key.nil?
+              puts "There's no primary key associated with this model. Skipping model to prevent errors"
+              next
+            else
+              query.find_each do |object|
+                neo4apis_client.import model_class.name.to_sym, object unless exceptions.include? object.class.to_s.singularize.camelize
+              end
+            end
           end
         end
       end
