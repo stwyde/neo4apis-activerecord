@@ -35,6 +35,7 @@ You can also try:
 This will only import models that you've also mentioned. For example, if there's a relationship between Posts and a User (say User has many Posts, Post belongs to User), the "models Post Comment" import will also grab users that a given Post belongs to and import them as well. The "models_with_internal_associations" import method checks to make sure that any model not explicitly mentioned is not imported. 
 
 Lastly (PENDING IMPLEMENTATION TODO BEFORE PULL REQUEST), you can specify both models you're interested in, as well as a blacklist. Say you wanted to import Posts, Users, anything associated with Users, but not Comments made by Users or attached to Posts? 
+
     neo4apis activerecord models_named Post User except Comment --import-all-associations
 
 This call will skip Comments whenever encountered during import while importing the rest of the associations found. 
