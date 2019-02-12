@@ -12,10 +12,11 @@ module Neo4Apis
 
       class_option :debug, type: :boolean, default: false, desc: 'Output debugging information'
 
-      class_option :import_all_associations, type: :boolean, default: false, desc: 'Shortcut for --import-belongs-to --import-has-many --import-has-one'
+      class_option :import_all_associations, type: :boolean, default: false, desc: 'Shortcut for --import-belongs-to --import-has-many --import-has-one --import-has-and-belongs-to-many'
       class_option :import_belongs_to, type: :boolean, default: nil
       class_option :import_has_one, type: :boolean, default: nil
       class_option :import_has_many, type: :boolean, default: nil
+      class_option :import_has_and_belongs_to_many, type: :boolean, default: nil
 
       class_option :identify_model, type: :boolean, default: false, desc: 'Identify table name, primary key, and foreign keys automatically'
 
@@ -73,6 +74,17 @@ module Neo4Apis
          end
         import_models_or_tables(models, exceptions) #constantize?
       end
+
+      desc 'models_named MODELS_OR_TABLE_NAMES except BLACKLISTED_MODELS', 'import specified ActiveRecord models and their associations, but explicitly ignore any blacklisted models'
+      def models_named(*models_or_table_names, *blacklisted_models)
+        setup 
+        Rails.application.eager_load! #we eager load so that there arent' errors when models not explicitly mentioned are imported in
+        models = Array.wrap(models_or_table_names.map(&method(:get_model)))
+        blacklist = Array.wrap(blacklisted_models.map(&method(:get_model)))
+        
+        import_models_or_tables(models, blacklist) #TODO: Confirm this works
+      end 
+
 
       private
 

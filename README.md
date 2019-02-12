@@ -20,6 +20,25 @@ or
 
     neo4apis activerecord models Post Comment --import-all-associations
 
+## Additional run time options for ActiveRecord Applications:
+
+With an existing ActiveRecord application, a few new options are also available.
+
+    neo4apis activerecord all_models_except Comment --import-all-associations
+
+Will import all models in your ActiveRecord application unless that model is part of the exceptions list. In the case of polymorphic association, the blacklisted model will be included in the initial query, but skipped once the import script checks its type and notices that it is blacklisted. 
+
+You can also try: 
+
+    neo4apis activerecord models_with_internal_associations Post Comment --import-all-associations
+
+This will only import models that you've also mentioned. For example, if there's a relationship between Posts and a User (say User has many Posts, Post belongs to User), the "models Post Comment" import will also grab users that a given Post belongs to and import them as well. The "models_with_internal_associations" import method checks to make sure that any model not explicitly mentioned is not imported. 
+
+Lastly (PENDING IMPLEMENTATION TODO BEFORE PULL REQUEST), you can specify both models you're interested in, as well as a blacklist. Say you wanted to import Posts, Users, anything associated with Users, but not Comments made by Users or attached to Posts? 
+    neo4apis activerecord models_named Post User except Comment --import-all-associations
+
+This call will skip Comments whenever encountered during import while importing the rest of the associations found. 
+
 ## Installation
 
 Using rubygems:
@@ -51,6 +70,7 @@ As an example: for a table of posts the following possibilities would checked:
 ### `--import-belongs-to`
 ### `--import-has-many`
 ### `--import-has-one`
+### `--import-has-and-belongs-to-many`
 ### `--import-all-associations`
 
 Either specify that a certain class of associations be imported from ActiveRecord models or specify all with `--import-all-associations`
